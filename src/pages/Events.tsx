@@ -5,10 +5,11 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Calendar, MapPin, Users, LogOut, Plus } from "lucide-react";
+import { Calendar, MapPin, Users, LogOut } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import CreateEventDialog from "@/components/CreateEventDialog";
 
 interface Event {
   id: string;
@@ -105,10 +106,7 @@ const Events = () => {
           </div>
           
           <div className="flex items-center gap-4">
-            <Button variant="outline" size="sm">
-              <Plus className="w-4 h-4 mr-2" />
-              Create Event
-            </Button>
+            <CreateEventDialog onEventCreated={fetchEvents} />
             <Button variant="ghost" size="sm" onClick={handleSignOut}>
               <LogOut className="w-4 h-4 mr-2" />
               Sign Out
