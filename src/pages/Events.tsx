@@ -107,6 +107,9 @@ const Events = () => {
           
           <div className="flex items-center gap-4">
             <CreateEventDialog onEventCreated={fetchEvents} />
+            <Button variant="outline" size="sm" onClick={() => navigate("/admin")}>
+              Admin Panel
+            </Button>
             <Button variant="ghost" size="sm" onClick={handleSignOut}>
               <LogOut className="w-4 h-4 mr-2" />
               Sign Out
