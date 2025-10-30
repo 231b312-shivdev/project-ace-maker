@@ -30,6 +30,8 @@ const Events = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [userRole, setUserRole] = useState<string>("student");
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
 
   useEffect(() => {
     checkUser();
@@ -45,6 +47,18 @@ const Events = () => {
     }
     
     setUser(session.user);
+
+    // Check user role
+    const { data: roles } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", session.user.id);
+
+    if (roles && roles.length > 0) {
+      const role = roles[0].role;
+      setUserRole(role);
+      setIsSuperAdmin(role === "super_admin");
+    }
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null);
@@ -102,14 +116,25 @@ const Events = () => {
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-primary">CampusEventHub</h1>
-            <p className="text-sm text-muted-foreground">Discover & Register for Events</p>
+            <p className="text-sm text-muted-foreground">
+              Discover & Register for Events
+              {userRole && (
+                <Badge variant="outline" className="ml-2 capitalize">
+                  {userRole.replace("_", " ")}
+                </Badge>
+              )}
+            </p>
           </div>
           
           <div className="flex items-center gap-4">
-            <CreateEventDialog onEventCreated={fetchEvents} />
-            <Button variant="outline" size="sm" onClick={() => navigate("/admin")}>
-              Admin Panel
-            </Button>
+            {(userRole === "college_admin" || userRole === "super_admin") && (
+              <CreateEventDialog onEventCreated={fetchEvents} />
+            )}
+            {isSuperAdmin && (
+              <Button variant="outline" size="sm" onClick={() => navigate("/admin")}>
+                Admin Panel
+              </Button>
+            )}
             <Button variant="ghost" size="sm" onClick={handleSignOut}>
               <LogOut className="w-4 h-4 mr-2" />
               Sign Out
