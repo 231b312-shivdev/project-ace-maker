@@ -10,6 +10,8 @@ import { toast } from "sonner";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import CreateEventDialog from "@/components/CreateEventDialog";
+import { EventRegistration } from "@/components/EventRegistration";
+import { EventFeedback } from "@/components/EventFeedback";
 
 interface Event {
   id: string;
@@ -32,11 +34,21 @@ const Events = () => {
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [userRole, setUserRole] = useState<string>("student");
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
+  const [userRegistrations, setUserRegistrations] = useState<any[]>([]);
 
   useEffect(() => {
     checkUser();
     fetchEvents();
   }, []);
+
+  const fetchUserRegistrations = async (userId: string) => {
+    const { data } = await supabase
+      .from("registrations")
+      .select("*")
+      .eq("user_id", userId);
+    
+    setUserRegistrations(data || []);
+  };
 
   const checkUser = async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -59,6 +71,8 @@ const Events = () => {
       setUserRole(role);
       setIsSuperAdmin(role === "super_admin");
     }
+
+    await fetchUserRegistrations(session.user.id);
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setUser(session?.user ?? null);
@@ -226,7 +240,23 @@ const Events = () => {
                     Max {event.max_participants} participants
                   </div>
                   
-                  <Button className="w-full mt-4">Register Now</Button>
+                  {user && userRole === "student" && (
+                    <div className="flex gap-2 mt-4 pt-4 border-t">
+                      <EventRegistration
+                        eventId={event.id}
+                        userId={user.id}
+                        onRegistrationChange={() => fetchUserRegistrations(user.id)}
+                      />
+                      <EventFeedback
+                        eventId={event.id}
+                        userId={user.id}
+                        eventTitle={event.title}
+                        isRegistered={userRegistrations.some(
+                          (reg) => reg.event_id === event.id && reg.status === "approved"
+                        )}
+                      />
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             ))}
